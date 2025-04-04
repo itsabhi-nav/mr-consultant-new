@@ -11,17 +11,6 @@ import ScrollToTop from "../components/ScrollToTop";
 import TableOfContents from "../components/TableOfContents";
 import Image from "next/image";
 
-export const generateMetadata = ({ params }) => {
-  const slug = params.slug;
-  return {
-    title: `Blog | M R Consultants`,
-    description: `Read professional articles and insights from M R Consultants on real estate, construction, and design.`,
-    alternates: {
-      canonical: `https://www.mrconsultants.net/blog/${slug}`,
-    },
-  };
-};
-
 export default function SinglePostPage() {
   const { slug } = useParams();
   const router = useRouter();
