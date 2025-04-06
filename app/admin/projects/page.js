@@ -49,7 +49,7 @@ export default function AdminProjectsPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [deletingProjectIds, setDeletingProjectIds] = useState([]);
 
-  // State for adding a new project
+  // Unified form state for both adding and editing
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -64,28 +64,19 @@ export default function AdminProjectsPage() {
   });
   const [file, setFile] = useState(null);
   const [mainImagePreview, setMainImagePreview] = useState(null);
-  const [galleryFiles, setGalleryFiles] = useState([]);
-  const [galleryPreviews, setGalleryPreviews] = useState([]);
+
+  // For new gallery images (added in this session)
+  const [newGalleryFiles, setNewGalleryFiles] = useState([]);
+  const [newGalleryPreviews, setNewGalleryPreviews] = useState([]);
+  // For images already saved in the project (edit mode)
+  const [existingGallery, setExistingGallery] = useState([]);
+  // Keep track of which existing images the user has marked to remove
+  const [pendingRemoval, setPendingRemoval] = useState([]);
   const [resetKey, setResetKey] = useState(0);
 
-  // State for editing an existing project
-  const [editingProject, setEditingProject] = useState(null);
-  const [editForm, setEditForm] = useState({
-    title: "",
-    description: "",
-    category: "current",
-    overview: "",
-    details: "",
-    hero_image: "",
-    location: "",
-    year_completed: "",
-    project_type: "",
-    key_features: "",
-  });
-  const [editFile, setEditFile] = useState(null);
-  const [editMainImagePreview, setEditMainImagePreview] = useState(null);
-  const [editGalleryFiles, setEditGalleryFiles] = useState([]);
-  const [editGalleryPreviews, setEditGalleryPreviews] = useState([]);
+  // State to track if we're editing an existing project.
+  // When null we're in "add" mode; otherwise edit mode.
+  const [editId, setEditId] = useState(null);
 
   // Group projects by category
   const groupedProjects = projects.reduce((acc, project) => {
@@ -114,28 +105,6 @@ export default function AdminProjectsPage() {
     fetchProjects();
   }, [service]);
 
-  // Pre-fill edit form when a project is selected for editing
-  useEffect(() => {
-    if (editingProject) {
-      setEditForm({
-        title: editingProject.title || "",
-        description: editingProject.description || "",
-        category: editingProject.category || "current",
-        overview: editingProject.overview || "",
-        details: editingProject.details || "",
-        hero_image: editingProject.hero_image || "",
-        location: editingProject.location || "",
-        year_completed: editingProject.year_completed || "",
-        project_type: editingProject.project_type || "",
-        key_features: editingProject.key_features || "",
-      });
-      setEditFile(null);
-      setEditMainImagePreview(editingProject.image || null);
-      setEditGalleryFiles([]);
-      setEditGalleryPreviews(editingProject.gallery || []);
-    }
-  }, [editingProject]);
-
   const showNotification = (message, type = "success") => {
     setNotification({ message, type });
     setTimeout(() => setNotification(null), 4000);
@@ -144,11 +113,6 @@ export default function AdminProjectsPage() {
   function handleChange(e) {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
-  }
-
-  function handleEditChange(e) {
-    const { name, value } = e.target;
-    setEditForm((prev) => ({ ...prev, [name]: value }));
   }
 
   async function uploadFileToCloudinary(file) {
@@ -163,10 +127,21 @@ export default function AdminProjectsPage() {
     return data.url;
   }
 
+  // Compute the gallery previews to display in edit mode.
+  // In add mode, we simply use the newGalleryPreviews.
+  const displayedGalleryPreviews = editId
+    ? [
+        ...existingGallery.filter((url) => !pendingRemoval.includes(url)),
+        ...newGalleryPreviews,
+      ]
+    : newGalleryPreviews;
+
+  // Unified submit handler for both add and edit modes
   async function handleSubmit(e) {
     e.preventDefault();
     setIsUploading(true);
 
+    // Upload main image if new file selected; otherwise use existing preview (for edit)
     let imageUrl = "";
     if (file) {
       try {
@@ -177,22 +152,46 @@ export default function AdminProjectsPage() {
         setIsUploading(false);
         return;
       }
+    } else if (editId) {
+      imageUrl = mainImagePreview;
     }
 
+    // Process gallery images based on mode
     let galleryUrls = [];
-    for (const gf of galleryFiles) {
-      if (gf) {
+    if (editId) {
+      // In edit mode, first take the remaining existing images
+      const remainingExisting = existingGallery.filter(
+        (url) => !pendingRemoval.includes(url)
+      );
+      let newUploads = [];
+      if (newGalleryFiles.length > 0) {
         try {
-          const url = await uploadFileToCloudinary(gf);
-          galleryUrls.push(url);
+          newUploads = await Promise.all(
+            newGalleryFiles.map((gf) => uploadFileToCloudinary(gf))
+          );
         } catch (error) {
           console.error("Gallery image upload failed:", error);
           showNotification("Gallery image upload failed", "error");
         }
       }
+      galleryUrls = [...remainingExisting, ...newUploads];
+    } else {
+      // In add mode, upload new files if any
+      if (newGalleryFiles.length > 0) {
+        try {
+          galleryUrls = await Promise.all(
+            newGalleryFiles.map((gf) => uploadFileToCloudinary(gf))
+          );
+        } catch (error) {
+          console.error("Gallery image upload failed:", error);
+          showNotification("Gallery image upload failed", "error");
+        }
+      } else {
+        galleryUrls = displayedGalleryPreviews;
+      }
     }
 
-    const newProject = {
+    const projectData = {
       service,
       title: form.title,
       description: form.description,
@@ -208,91 +207,101 @@ export default function AdminProjectsPage() {
       key_features: form.key_features,
     };
 
-    const { error } = await supabase.from("projects").insert([newProject]);
-    if (error) {
-      console.error("Error inserting project:", error);
-      showNotification("Error inserting project", "error");
-    } else {
-      showNotification("Project added successfully!", "success");
-      setForm({
-        title: "",
-        description: "",
-        category: "current",
-        overview: "",
-        details: "",
-        hero_image: "",
-        location: "",
-        year_completed: "",
-        project_type: "",
-        key_features: "",
-      });
-      setFile(null);
-      setMainImagePreview(null);
-      setGalleryFiles([]);
-      setGalleryPreviews([]);
-      setResetKey((prev) => prev + 1);
-      // Refresh projects list
-      const { data, error } = await supabase
+    if (editId) {
+      // Update existing project
+      const { error, data } = await supabase
         .from("projects")
-        .select("*")
-        .eq("service", service);
+        .update(projectData, { returning: "representation" })
+        .eq("id", editId);
       if (error) {
-        console.error("Error fetching projects", error);
-        showNotification("Error fetching projects", "error");
+        console.error("Error updating project:", error);
+        showNotification("Error updating project", "error");
       } else {
-        setProjects(data);
+        showNotification("Project updated successfully!", "success");
+        if (data && data.length > 0) {
+          setProjects((prev) =>
+            prev.map((p) => (p.id === editId ? data[0] : p))
+          );
+        } else {
+          // Re-fetch projects if no data is returned
+          const { data: refreshedData, error: fetchError } = await supabase
+            .from("projects")
+            .select("*")
+            .eq("service", service);
+          if (!fetchError) setProjects(refreshedData);
+        }
+        setEditId(null);
       }
-    }
-    setIsUploading(false);
-  }
-
-  async function handleEditSubmit(e) {
-    e.preventDefault();
-    // Upload main image if updated
-    let newImageUrl = editMainImagePreview;
-    if (editFile) {
-      try {
-        newImageUrl = await uploadFileToCloudinary(editFile);
-      } catch (error) {
-        console.error("Main image upload failed:", error);
-        showNotification("Main image upload failed", "error");
-        return;
-      }
-    }
-    // Upload new gallery images if any
-    let newGalleryUrls = editGalleryPreviews;
-    if (editGalleryFiles.length > 0) {
-      newGalleryUrls = [];
-      for (const gf of editGalleryFiles) {
-        try {
-          const url = await uploadFileToCloudinary(gf);
-          newGalleryUrls.push(url);
-        } catch (error) {
-          console.error("Gallery image upload failed:", error);
-          showNotification("Gallery image upload failed", "error");
+    } else {
+      // Insert new project
+      const { error } = await supabase.from("projects").insert([projectData]);
+      if (error) {
+        console.error("Error inserting project:", error);
+        showNotification("Error inserting project", "error");
+      } else {
+        showNotification("Project added successfully!", "success");
+        const { data, error: fetchError } = await supabase
+          .from("projects")
+          .select("*")
+          .eq("service", service);
+        if (fetchError) {
+          console.error("Error fetching projects", fetchError);
+          showNotification("Error fetching projects", "error");
+        } else {
+          setProjects(data);
         }
       }
     }
-    const updatedProject = {
-      ...editForm,
-      image: newImageUrl,
-      gallery: newGalleryUrls,
-    };
-    // Update with returning option
-    const { error, data } = await supabase
-      .from("projects")
-      .update(updatedProject, { returning: "representation" })
-      .eq("id", editingProject.id);
-    if ((error && error.message) || !data || data.length === 0) {
-      console.error("Error updating project:", error, data);
-      showNotification("Error updating project", "error");
-    } else {
-      showNotification("Project updated successfully!", "success");
-      setProjects((prev) =>
-        prev.map((p) => (p.id === editingProject.id ? data[0] : p))
-      );
-      setEditingProject(null);
-    }
+
+    // Reset form and file inputs after update
+    resetForm();
+    setIsUploading(false);
+  }
+
+  // Handle click on edit button: pre-fill form with project data
+  function handleEdit(project) {
+    setEditId(project.id);
+    setForm({
+      title: project.title || "",
+      description: project.description || "",
+      category: project.category || "current",
+      overview: project.overview || "",
+      details: project.details || "",
+      hero_image: project.hero_image || "",
+      location: project.location || "",
+      year_completed: project.year_completed || "",
+      project_type: project.project_type || "",
+      key_features: project.key_features || "",
+    });
+    setMainImagePreview(project.image);
+    setExistingGallery(project.gallery || []);
+    setNewGalleryFiles([]);
+    setNewGalleryPreviews([]);
+    setPendingRemoval([]);
+  }
+
+  // Cancel edit mode and reset form
+  function resetForm() {
+    setEditId(null);
+    setForm({
+      title: "",
+      description: "",
+      category: "current",
+      overview: "",
+      details: "",
+      hero_image: "",
+      location: "",
+      year_completed: "",
+      project_type: "",
+      key_features: "",
+    });
+    setFile(null);
+    setMainImagePreview(null);
+    setNewGalleryFiles([]);
+    setNewGalleryPreviews([]);
+    setExistingGallery([]);
+    setPendingRemoval([]);
+    setResetKey((prev) => prev + 1);
   }
 
   async function deleteProject(project) {
@@ -334,15 +343,21 @@ export default function AdminProjectsPage() {
     e.preventDefault();
     const files = Array.from(e.dataTransfer.files);
     if (files.length) {
-      setGalleryFiles((prev) => [...prev, ...files]);
+      setNewGalleryFiles((prev) => [...prev, ...files]);
       const previews = files.map((file) => URL.createObjectURL(file));
-      setGalleryPreviews((prev) => [...prev, ...previews]);
+      setNewGalleryPreviews((prev) => [...prev, ...previews]);
     }
   }, []);
 
   const handleGalleryDragOver = (e) => {
     e.preventDefault();
   };
+
+  // In the rendered gallery preview, we determine which images are from the existing gallery.
+  // displayedExistingGallery is the subset of existingGallery not marked for removal.
+  const displayedExistingGallery = existingGallery.filter(
+    (url) => !pendingRemoval.includes(url)
+  );
 
   return (
     <>
@@ -374,8 +389,17 @@ export default function AdminProjectsPage() {
 
         <div className="flex flex-col sm:flex-row items-center justify-between mb-8 sm:space-y-0 space-y-4 lg:mb-12">
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-neonBlue drop-shadow-lg">
-            Admin Projects
+            {editId ? "Edit Project" : "Add Project"}
           </h1>
+          {editId && (
+            <button
+              type="button"
+              onClick={resetForm}
+              className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition"
+            >
+              Cancel Edit
+            </button>
+          )}
         </div>
         <p className="mb-4 text-lg lg:text-xl">
           Select the service you want to edit:
@@ -400,7 +424,7 @@ export default function AdminProjectsPage() {
           Editing {SERVICES.find((s) => s.value === service)?.label} Projects
         </h2>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Form Section for Adding New Projects */}
+          {/* Form Section for Adding or Editing Projects */}
           <div className="bg-white/5 rounded-lg p-6">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -576,38 +600,59 @@ export default function AdminProjectsPage() {
                   multiple
                   onChange={(e) => {
                     const files = Array.from(e.target.files);
-                    setGalleryFiles((prev) => [...prev, ...files]);
+                    setNewGalleryFiles((prev) => [...prev, ...files]);
                     const previews = files.map((file) =>
                       URL.createObjectURL(file)
                     );
-                    setGalleryPreviews((prev) => [...prev, ...previews]);
+                    setNewGalleryPreviews((prev) => [...prev, ...previews]);
                   }}
                   className="block mb-4 text-white bg-gray-800 border border-gray-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neonBlue"
                 />
-                {galleryPreviews.length > 0 && (
+                {displayedGalleryPreviews.length > 0 && (
                   <div className="grid grid-cols-3 gap-4">
-                    {galleryPreviews.map((preview, index) => (
-                      <div key={index} className="relative">
-                        <img
-                          src={preview}
-                          alt={`Gallery Preview ${index + 1}`}
-                          className="h-20 w-full object-cover rounded shadow-md"
-                        />
-                        <button
-                          onClick={() => {
-                            setGalleryFiles((prev) =>
-                              prev.filter((_, i) => i !== index)
-                            );
-                            setGalleryPreviews((prev) =>
-                              prev.filter((_, i) => i !== index)
-                            );
-                          }}
-                          className="absolute top-0 right-0 bg-red-600 text-white rounded-full p-1 hover:bg-red-700 transition"
-                        >
-                          <FaTrashAlt size={12} />
-                        </button>
-                      </div>
-                    ))}
+                    {displayedGalleryPreviews.map((preview, index) => {
+                      // Determine if this preview is from the existing gallery
+                      const existingCount = existingGallery.filter(
+                        (url) => !pendingRemoval.includes(url)
+                      ).length;
+                      const isExisting = editId && index < existingCount;
+                      return (
+                        <div key={index} className="relative">
+                          <img
+                            src={preview}
+                            alt={`Gallery Preview ${index + 1}`}
+                            className="h-20 w-full object-cover rounded shadow-md"
+                          />
+                          <button
+                            onClick={() => {
+                              if (editId && isExisting) {
+                                // Mark this existing image for removal (but do not update existingGallery immediately)
+                                setPendingRemoval((prev) => [
+                                  ...prev,
+                                  existingGallery.filter(
+                                    (url) => !prev.includes(url)
+                                  )[index],
+                                ]);
+                              } else {
+                                // For new images, remove from newGalleryFiles and newGalleryPreviews.
+                                const newIndex = editId
+                                  ? index - existingCount
+                                  : index;
+                                setNewGalleryFiles((prev) =>
+                                  prev.filter((_, i) => i !== newIndex)
+                                );
+                                setNewGalleryPreviews((prev) =>
+                                  prev.filter((_, i) => i !== newIndex)
+                                );
+                              }
+                            }}
+                            className="absolute top-0 right-0 bg-red-600 text-white rounded-full p-1 hover:bg-red-700 transition"
+                          >
+                            <FaTrashAlt size={12} />
+                          </button>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -623,8 +668,10 @@ export default function AdminProjectsPage() {
                 {isUploading ? (
                   <div className="flex items-center justify-center">
                     <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-black mr-2"></div>
-                    Uploading...
+                    {editId ? "Updating..." : "Uploading..."}
                   </div>
+                ) : editId ? (
+                  "Update Project"
                 ) : (
                   "Add Project"
                 )}
@@ -661,7 +708,7 @@ export default function AdminProjectsPage() {
                             Learn More
                           </Link>
                           <button
-                            onClick={() => setEditingProject(project)}
+                            onClick={() => handleEdit(project)}
                             className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition"
                           >
                             Edit
@@ -687,238 +734,6 @@ export default function AdminProjectsPage() {
           </div>
         </div>
       </motion.div>
-
-      {/* Edit Modal */}
-      <AnimatePresence>
-        {editingProject && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-          >
-            <motion.div
-              initial={{ scale: 0.8 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.8 }}
-              className="bg-white text-black p-6 rounded-lg w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto"
-            >
-              <h2 className="text-xl font-bold mb-4">Edit Project</h2>
-              <form onSubmit={handleEditSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block mb-2">Project Title</label>
-                    <input
-                      type="text"
-                      name="title"
-                      value={editForm.title}
-                      onChange={handleEditChange}
-                      className="w-full p-2 border rounded"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block mb-2">Category</label>
-                    <select
-                      name="category"
-                      value={editForm.category}
-                      onChange={handleEditChange}
-                      className="w-full p-2 border rounded"
-                    >
-                      <option value="current">Current</option>
-                      <option value="completed">Completed</option>
-                      <option value="upcoming">Upcoming</option>
-                    </select>
-                  </div>
-                </div>
-                <div>
-                  <label className="block mb-2">Short Description</label>
-                  <input
-                    type="text"
-                    name="description"
-                    value={editForm.description}
-                    onChange={handleEditChange}
-                    className="w-full p-2 border rounded"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block mb-2">Hero Image URL</label>
-                  <input
-                    type="text"
-                    name="hero_image"
-                    value={editForm.hero_image}
-                    onChange={handleEditChange}
-                    className="w-full p-2 border rounded"
-                  />
-                </div>
-                <div>
-                  <label className="block mb-2">Location</label>
-                  <input
-                    type="text"
-                    name="location"
-                    value={editForm.location}
-                    onChange={handleEditChange}
-                    className="w-full p-2 border rounded"
-                  />
-                </div>
-                <div>
-                  <label className="block mb-2">Year Completed</label>
-                  <input
-                    type="text"
-                    name="year_completed"
-                    value={editForm.year_completed}
-                    onChange={handleEditChange}
-                    className="w-full p-2 border rounded"
-                  />
-                </div>
-                <div>
-                  <label className="block mb-2">Project Type</label>
-                  <input
-                    type="text"
-                    name="project_type"
-                    value={editForm.project_type}
-                    onChange={handleEditChange}
-                    className="w-full p-2 border rounded"
-                  />
-                </div>
-                <div>
-                  <label className="block mb-2">
-                    Key Features (each point on a new line)
-                  </label>
-                  <textarea
-                    name="key_features"
-                    value={editForm.key_features}
-                    onChange={handleEditChange}
-                    className="w-full p-2 border rounded"
-                  />
-                </div>
-                <div>
-                  <label className="block mb-2">Project Overview</label>
-                  <textarea
-                    name="overview"
-                    value={editForm.overview}
-                    onChange={handleEditChange}
-                    className="w-full p-2 border rounded"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block mb-2">Project Details</label>
-                  <textarea
-                    name="details"
-                    value={editForm.details}
-                    onChange={handleEditChange}
-                    className="w-full p-2 border rounded"
-                  />
-                </div>
-                <div>
-                  <label className="block mb-2">Main Image Upload</label>
-                  <input
-                    type="file"
-                    onChange={(e) => {
-                      const selected = e.target.files[0];
-                      setEditFile(selected);
-                      setEditMainImagePreview(
-                        selected
-                          ? URL.createObjectURL(selected)
-                          : editMainImagePreview
-                      );
-                    }}
-                    className="w-full"
-                  />
-                  {editMainImagePreview && (
-                    <div className="mt-2">
-                      <img
-                        src={editMainImagePreview}
-                        alt="Main Preview"
-                        className="max-h-40 rounded"
-                      />
-                    </div>
-                  )}
-                </div>
-                <div>
-                  <label className="block mb-2">Gallery Images Upload</label>
-                  <div
-                    onDrop={(e) => {
-                      e.preventDefault();
-                      const files = Array.from(e.dataTransfer.files);
-                      if (files.length) {
-                        setEditGalleryFiles((prev) => [...prev, ...files]);
-                        const previews = files.map((file) =>
-                          URL.createObjectURL(file)
-                        );
-                        setEditGalleryPreviews((prev) => [
-                          ...prev,
-                          ...previews,
-                        ]);
-                      }
-                    }}
-                    onDragOver={(e) => e.preventDefault()}
-                    className="border-dashed border-2 border-gray-300 p-4 rounded text-center mb-2"
-                  >
-                    Drag & drop images here, or use the file selector below.
-                  </div>
-                  <input
-                    type="file"
-                    multiple
-                    onChange={(e) => {
-                      const files = Array.from(e.target.files);
-                      setEditGalleryFiles((prev) => [...prev, ...files]);
-                      const previews = files.map((file) =>
-                        URL.createObjectURL(file)
-                      );
-                      setEditGalleryPreviews((prev) => [...prev, ...previews]);
-                    }}
-                    className="w-full"
-                  />
-                  {editGalleryPreviews.length > 0 && (
-                    <div className="grid grid-cols-3 gap-4 mt-2">
-                      {editGalleryPreviews.map((preview, index) => (
-                        <div key={index} className="relative">
-                          <img
-                            src={preview}
-                            alt={`Gallery Preview ${index + 1}`}
-                            className="h-20 w-full object-cover rounded"
-                          />
-                          <button
-                            onClick={() => {
-                              setEditGalleryFiles((prev) =>
-                                prev.filter((_, i) => i !== index)
-                              );
-                              setEditGalleryPreviews((prev) =>
-                                prev.filter((_, i) => i !== index)
-                              );
-                            }}
-                            className="absolute top-0 right-0 bg-red-600 text-white rounded-full p-1"
-                          >
-                            <FaTrashAlt size={12} />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                <div className="flex gap-4">
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-green-600 text-white rounded"
-                  >
-                    Save Changes
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setEditingProject(null)}
-                    className="px-4 py-2 bg-red-600 text-white rounded"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </>
   );
 }

@@ -1,5 +1,4 @@
 "use client";
-
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabaseClient";
@@ -9,7 +8,6 @@ import RelatedPosts from "../components/RelatedPosts";
 import ReadingProgress from "../components/ReadingProgress";
 import ScrollToTop from "../components/ScrollToTop";
 import TableOfContents from "../components/TableOfContents";
-import Image from "next/image";
 
 export default function SinglePostPage() {
   const { slug } = useParams();
@@ -99,38 +97,6 @@ export default function SinglePostPage() {
     <>
       <ReadingProgress />
       <ScrollToTop />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "BlogPosting",
-            mainEntityOfPage: {
-              "@type": "WebPage",
-              "@id": `https://www.mrconsultants.net/blog/${slug}`,
-            },
-            headline: post.title,
-            description:
-              post.description ||
-              post.content?.replace(/<[^>]*>?/gm, "").substring(0, 160) + "...",
-            image: post.coverImage,
-            author: {
-              "@type": "Person",
-              name: post.author?.name || "M R Consultants",
-            },
-            publisher: {
-              "@type": "Organization",
-              name: "M R Consultants",
-              logo: {
-                "@type": "ImageObject",
-                url: "https://www.mrconsultants.net/logo.png",
-              },
-            },
-            datePublished: post.date,
-            dateModified: post.date,
-          }),
-        }}
-      />
       <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
@@ -143,18 +109,13 @@ export default function SinglePostPage() {
         >
           Back to Blog
         </button>
-
-        <div className="w-full h-[300px] md:h-[450px] overflow-hidden rounded-xl relative">
-          <Image
+        <div className="w-full h-[300px] md:h-[450px] overflow-hidden rounded-xl">
+          <img
             src={post.coverImage}
             alt={post.title}
-            layout="fill"
-            objectFit="cover"
-            priority
-            quality={90}
+            className="w-full h-full object-cover"
           />
         </div>
-
         <TableOfContents content={post.content} />
         <article className="prose prose-invert max-w-none">
           <h1 className="text-4xl font-extrabold mb-2 glow">{post.title}</h1>
@@ -166,7 +127,7 @@ export default function SinglePostPage() {
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
         </article>
-
+        {/* Gallery Section */}
         {post.gallery &&
           Array.isArray(post.gallery) &&
           post.gallery.length > 0 && (
@@ -174,29 +135,23 @@ export default function SinglePostPage() {
               <h3 className="text-2xl font-bold mb-4">Gallery</h3>
               <div className="grid grid-cols-2 gap-4">
                 {post.gallery.map((imgUrl, index) => (
-                  <div key={index} className="relative w-full aspect-video">
-                    <Image
-                      src={imgUrl}
-                      alt={`Gallery image ${index + 1}`}
-                      layout="fill"
-                      objectFit="cover"
-                      className="rounded shadow-md"
-                    />
-                  </div>
+                  <img
+                    key={index}
+                    src={imgUrl}
+                    alt={`Gallery image ${index + 1}`}
+                    className="w-full h-auto rounded shadow-md"
+                  />
                 ))}
               </div>
             </div>
           )}
-
         {post.author && (
           <div className="flex items-center gap-4 bg-black bg-opacity-50 p-4 rounded-xl">
             {post.author.avatar && (
-              <Image
+              <img
                 src={post.author.avatar}
                 alt={post.author.name}
-                width={64}
-                height={64}
-                className="rounded-full object-cover"
+                className="w-16 h-16 rounded-full object-cover"
               />
             )}
             <div>
@@ -205,7 +160,6 @@ export default function SinglePostPage() {
             </div>
           </div>
         )}
-
         <div className="flex items-center gap-4">
           <button
             onClick={handleLike}
@@ -221,7 +175,6 @@ export default function SinglePostPage() {
             Share
           </button>
         </div>
-
         <RelatedPosts currentPostId={post.id} category={post.category} />
         <CommentsSection postId={post.id} />
       </motion.div>
