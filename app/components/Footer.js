@@ -76,17 +76,27 @@ export default function Footer() {
               </a>
             </li>
             <li>
-              <a href="#services" className="hover:text-neonBlue transition">
-                Services
-              </a>
-            </li>
-            <li>
-              <a href="#about" className="hover:text-neonBlue transition">
+              <a href="/#about" className="hover:text-neonBlue transition">
                 About
               </a>
             </li>
             <li>
-              <a href="#contact" className="hover:text-neonBlue transition">
+              <a href="/#services" className="hover:text-neonBlue transition">
+                Services
+              </a>
+            </li>
+            <li>
+              <a href="/buy-sell" className="hover:text-neonBlue transition">
+                Buy/Sell Properties
+              </a>
+            </li>
+            <li>
+              <a href="/blog" className="hover:text-neonBlue transition">
+                Blog
+              </a>
+            </li>
+            <li>
+              <a href="/contact" className="hover:text-neonBlue transition">
                 Contact
               </a>
             </li>
@@ -96,9 +106,11 @@ export default function Footer() {
         {/* Contact Information */}
         <div>
           <h4 className="text-xl font-semibold mb-4">Contact Us</h4>
-          <p className="text-gray-400">123 Future St, Innovation City</p>
-          <p className="text-gray-400">Email: info@mrconsultants.com</p>
-          <p className="text-gray-400">Phone: +123 456 7890</p>
+          <p className="text-gray-400">
+            #46 Pro Fit Club Appu circle Doddabele Kengeri Bangalore 560060
+          </p>
+          <p className="text-gray-400">Email: mrconsultants589@gmail.com</p>
+          <p className="text-gray-400">Phone: +91 7619624474</p>
         </div>
 
         {/* Map Section */}
