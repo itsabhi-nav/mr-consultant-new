@@ -50,16 +50,19 @@ export default function BuySellPage() {
     )
     .filter((p) => selectedType === "All" || p.propertytype === selectedType)
     .sort((a, b) => {
-      if (sortOrder === "priceLow")
+      if (sortOrder === "priceLow") {
         return (
           parseFloat(a.price.replace(/[^0-9.-]+/g, "")) -
           parseFloat(b.price.replace(/[^0-9.-]+/g, ""))
         );
-      if (sortOrder === "priceHigh")
+      }
+      if (sortOrder === "priceHigh") {
         return (
           parseFloat(b.price.replace(/[^0-9.-]+/g, "")) -
           parseFloat(a.price.replace(/[^0-9.-]+/g, ""))
         );
+      }
+      // Default: newest first
       return b.id - a.id;
     });
 
@@ -67,7 +70,6 @@ export default function BuySellPage() {
     <div className="mt-[20px]">
       <div className="min-h-screen bg-gradient-to-br from-black via-indigo-900 to-purple-800 p-8 transition-colors duration-500">
         <div className="max-w-7xl mx-auto">
-          {/* Spacing added to push content downward */}
           <div className="mt-16 flex justify-between items-center mb-8">
             <motion.h1
               initial={{ opacity: 0, y: -30 }}
@@ -79,6 +81,7 @@ export default function BuySellPage() {
             </motion.h1>
           </div>
 
+          {/* Filters */}
           <div className="mb-8 grid grid-cols-1 md:grid-cols-4 gap-4">
             <input
               type="text"
@@ -120,6 +123,7 @@ export default function BuySellPage() {
             </select>
           </div>
 
+          {/* Loading & Cards */}
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {Array.from({ length: 6 }).map((_, i) => (
@@ -142,11 +146,16 @@ export default function BuySellPage() {
                   transition={{ type: "spring", stiffness: 300 }}
                   className="bg-white/20 rounded-2xl shadow-xl overflow-hidden border border-white/10"
                 >
+                  {/* 
+                    Here we ensure the entire image is always shown by using object-contain.
+                    The fixed height of h-48 keeps a consistent card size, so letterboxing
+                    might appear for certain aspect ratios.
+                  */}
                   {prop.main_image?.url ? (
                     <img
                       src={prop.main_image.url}
                       alt={prop.title}
-                      className="w-full h-48 object-cover rounded-t-2xl"
+                      className="w-full h-48 object-contain bg-gray-800"
                     />
                   ) : (
                     <div className="w-full h-48 bg-gray-600 flex items-center justify-center text-white">
@@ -176,6 +185,7 @@ export default function BuySellPage() {
             </div>
           )}
 
+          {/* Admin link */}
           <Link
             href="/admin/buy-sell"
             className="fixed bottom-6 right-6 bg-blue-700 hover:bg-blue-800 text-white p-4 rounded-full shadow-lg transition-all z-50"

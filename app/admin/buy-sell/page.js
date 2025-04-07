@@ -27,13 +27,21 @@ export default function AdminBuySellPage() {
   const [editingProperty, setEditingProperty] = useState(null);
   const [resetKey, setResetKey] = useState(0);
 
+  // NEW: isLoading for showing a loader
+  const [isLoading, setIsLoading] = useState(false);
+
   const fetchProperties = async () => {
-    const { data, error } = await supabase
-      .from("properties")
-      .select("*")
-      .order("id", { ascending: false });
-    if (!error) setProperties(data || []);
-    else console.error("Fetch error:", error);
+    setIsLoading(true); // Start loading
+    try {
+      const { data, error } = await supabase
+        .from("properties")
+        .select("*")
+        .order("id", { ascending: false });
+      if (!error) setProperties(data || []);
+      else console.error("Fetch error:", error);
+    } finally {
+      setIsLoading(false); // End loading
+    }
   };
 
   useEffect(() => {
@@ -59,71 +67,76 @@ export default function AdminBuySellPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true); // Start loading
 
-    let mainImageUrl = mainImagePreview;
-    if (mainImageFile) {
-      const url = await uploadFileToCloudinary(mainImageFile);
-      if (url) mainImageUrl = url;
-      else {
-        alert("Main image upload failed");
-        return;
+    try {
+      let mainImageUrl = mainImagePreview;
+      if (mainImageFile) {
+        const url = await uploadFileToCloudinary(mainImageFile);
+        if (url) mainImageUrl = url;
+        else {
+          alert("Main image upload failed");
+          return;
+        }
       }
-    }
 
-    let galleryUrls = existingGallery.filter(
-      (url) => !removedGalleryImages.includes(url)
-    );
-    if (galleryFiles.length > 0) {
-      const uploads = galleryFiles.map((f) => uploadFileToCloudinary(f));
-      const newGalleryUrls = (await Promise.all(uploads)).filter((url) => url);
-      galleryUrls = [...galleryUrls, ...newGalleryUrls];
-    }
+      let galleryUrls = existingGallery.filter(
+        (url) => !removedGalleryImages.includes(url)
+      );
+      if (galleryFiles.length > 0) {
+        const uploads = galleryFiles.map((f) => uploadFileToCloudinary(f));
+        const newGalleryUrls = (await Promise.all(uploads)).filter(
+          (url) => url
+        );
+        galleryUrls = [...galleryUrls, ...newGalleryUrls];
+      }
 
-    const payload = {
-      slug,
-      title,
-      address,
-      price,
-      description,
-      bedrooms: bedrooms ? parseInt(bedrooms, 10) : null,
-      bathrooms: bathrooms ? parseInt(bathrooms, 10) : null,
-      area,
-      propertytype,
-      features: features
-        .split(",")
-        .map((f) => f.trim())
-        .filter(Boolean),
-      agentname,
-      agentphone,
-      agentemail,
-      main_image: mainImageUrl
-        ? { url: mainImageUrl, public_id: "" } // Placeholder public_id; update if needed
-        : editingProperty?.main_image || null,
-      gallery_images: galleryUrls.map((url) => ({ url, public_id: "" })), // Placeholder public_id
-    };
+      const payload = {
+        slug,
+        title,
+        address,
+        price,
+        description,
+        bedrooms: bedrooms ? parseInt(bedrooms, 10) : null,
+        bathrooms: bathrooms ? parseInt(bathrooms, 10) : null,
+        area,
+        propertytype,
+        features: features
+          .split(",")
+          .map((f) => f.trim())
+          .filter(Boolean),
+        agentname,
+        agentphone,
+        agentemail,
+        main_image: mainImageUrl
+          ? { url: mainImageUrl, public_id: "" } // Placeholder public_id; update if needed
+          : editingProperty?.main_image || null,
+        gallery_images: galleryUrls.map((url) => ({ url, public_id: "" })), // Placeholder public_id
+      };
 
-    console.log("Payload:", payload);
-
-    if (editingProperty) {
-      const { error } = await supabase
-        .from("properties")
-        .update(payload)
-        .eq("id", editingProperty.id);
-      if (error) {
-        alert("Error updating property: " + error.message);
+      if (editingProperty) {
+        const { error } = await supabase
+          .from("properties")
+          .update(payload)
+          .eq("id", editingProperty.id);
+        if (error) {
+          alert("Error updating property: " + error.message);
+        } else {
+          alert("Property updated successfully!");
+        }
       } else {
-        alert("Property updated successfully!");
+        const { error } = await supabase.from("properties").insert([payload]);
+        if (error) {
+          alert("Error adding property: " + error.message);
+        } else {
+          alert("Property added successfully!");
+        }
       }
-    } else {
-      const { error } = await supabase.from("properties").insert([payload]);
-      if (error) {
-        alert("Error adding property: " + error.message);
-      } else {
-        alert("Property added successfully!");
-      }
+      fetchProperties();
+      resetForm();
+    } finally {
+      setIsLoading(false); // End loading
     }
-    fetchProperties();
-    resetForm();
   };
 
   const handleEdit = (property) => {
@@ -175,29 +188,34 @@ export default function AdminBuySellPage() {
   const handleDelete = async (property) => {
     if (!confirm(`Delete property "${property.title}"?`)) return;
 
-    const gallery = [];
-    if (property.main_image?.url) gallery.push(property.main_image.url);
-    if (property.gallery_images?.length > 0)
-      gallery.push(...property.gallery_images.map((img) => img.url));
+    setIsLoading(true); // Start loading
+    try {
+      const gallery = [];
+      if (property.main_image?.url) gallery.push(property.main_image.url);
+      if (property.gallery_images?.length > 0)
+        gallery.push(...property.gallery_images.map((img) => img.url));
 
-    if (gallery.length > 0) {
-      await fetch("/api/delete-image/route", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ gallery }),
-      });
-    }
+      if (gallery.length > 0) {
+        await fetch("/api/delete-image/route", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ gallery }),
+        });
+      }
 
-    const { error } = await supabase
-      .from("properties")
-      .delete()
-      .eq("id", property.id);
-    if (error) {
-      alert("Error deleting property: " + error.message);
-    } else {
-      alert("Property deleted successfully!");
-      fetchProperties();
-      if (editingProperty?.id === property.id) resetForm();
+      const { error } = await supabase
+        .from("properties")
+        .delete()
+        .eq("id", property.id);
+      if (error) {
+        alert("Error deleting property: " + error.message);
+      } else {
+        alert("Property deleted successfully!");
+        fetchProperties();
+        if (editingProperty?.id === property.id) resetForm();
+      }
+    } finally {
+      setIsLoading(false); // End loading
     }
   };
 
@@ -209,10 +227,17 @@ export default function AdminBuySellPage() {
 
   return (
     <motion.div
-      className="min-h-screen bg-gray-900 text-white p-6"
+      className="relative min-h-screen bg-gray-900 text-white p-6"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
     >
+      {/* Loader Overlay */}
+      {isLoading && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+          <div className="w-16 h-16 border-4 border-t-transparent border-white rounded-full animate-spin"></div>
+        </div>
+      )}
+
       <h1 className="text-3xl font-bold mb-6">Manage Buy/Sell Properties</h1>
       <div className="bg-gray-800 p-6 rounded-lg mb-8">
         <h2 className="text-2xl mb-4">
@@ -403,7 +428,7 @@ export default function AdminBuySellPage() {
                       alt={`Gallery Preview ${index + 1}`}
                       className="h-20 w-full object-cover rounded shadow-md"
                     />
-                    {editingProperty && // Changed from editId to editingProperty
+                    {editingProperty &&
                       existingGallery.includes(preview) &&
                       !removedGalleryImages.includes(preview) && (
                         <button
