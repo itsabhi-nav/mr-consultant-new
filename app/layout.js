@@ -35,13 +35,13 @@ export default function RootLayout({ children }) {
           property="og:description"
           content="Discover world-class solutions in real estate, construction, land development, and interior design. Trusted by 500+ clients globally."
         />
-        <meta property="og:url" content="https://www.mrconsultants.com" />
+        <meta property="og:url" content="https://www.mrconsultants.net" />
         <meta property="og:site_name" content="M R Consultants" />
         <meta property="og:type" content="website" />
         <meta property="og:locale" content="en_US" />
         <meta
           property="og:image"
-          content="https://www.mrconsultants.com/logo.jpg"
+          content="https://www.mrconsultants.net/logo.png"
         />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
@@ -62,7 +62,7 @@ export default function RootLayout({ children }) {
         />
         <meta
           name="twitter:image"
-          content="https://www.mrconsultants.com/logo.jpg"
+          content="https://www.mrconsultants.net/logo.png"
         />
 
         {/* ✅ JSON-LD Structured Data */}
@@ -73,8 +73,8 @@ export default function RootLayout({ children }) {
               "@context": "https://schema.org",
               "@type": "Organization",
               name: "M R Consultants",
-              url: "https://www.mrconsultants.com",
-              logo: "https://www.mrconsultants.com/logo.png",
+              url: "https://www.mrconsultants.net",
+              logo: "https://www.mrconsultants.net/logo.png",
               description:
                 "M R Consultants is a global leader in real estate, construction, land development, and home interior design. Delivering innovative and sustainable solutions worldwide.",
               address: {
