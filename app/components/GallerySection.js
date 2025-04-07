@@ -7,35 +7,34 @@ export default function GallerySection() {
   const galleryItems = [
     {
       id: 1,
-      title: "Modern House",
+      title: "",
       image: "https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg",
     },
     {
       id: 2,
-      title: "Futuristic Skyscraper",
-      image: "https://images.pexels.com/photos/325185/pexels-photo-325185.jpeg",
+      title: "",
+      image: "/2.jpeg",
     },
     {
       id: 3,
-      title: "Luxury Villa",
+      title: "",
       image:
         "https://images.pexels.com/photos/1643383/pexels-photo-1643383.jpeg",
     },
     {
       id: 4,
-      title: "Urban Living",
-      image:
-        "https://media.hswstatic.com/eyJidWNrZXQiOiJjb250ZW50Lmhzd3N0YXRpYy5jb20iLCJrZXkiOiJnaWZcL2hvdy1za3lzY3JhcGVycy13b3JrLmpwZyIsImVkaXRzIjp7InJlc2l6ZSI6eyJ3aWR0aCI6ODI4fX19",
+      title: "",
+      image: "/3.jpeg",
     },
     {
       id: 5,
-      title: "Innovative Office",
-      image: "https://images.pexels.com/photos/442577/pexels-photo-442577.jpeg",
+      title: "",
+      image: "/4.jpeg",
     },
     {
       id: 6,
-      title: "Architectural Marvel",
-      image: "https://images.pexels.com/photos/323780/pexels-photo-323780.jpeg",
+      title: "",
+      image: "./5.jpeg",
     },
   ];
 

@@ -5,29 +5,11 @@ import { motion } from "framer-motion";
 export default function TeamSection() {
   const teamMembers = [
     {
-      name: "Alice Johnson",
-      role: "CEO & Founder",
-      image:
-        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTeZ9G91YE6XpA1Ey21OcHQ9jbrRx7PDc2x_A&s",
+      name: "Mallesh Reddy",
+      role: "Proprietor",
+      image: "/profile.jpeg",
     },
-    {
-      name: "Bob Williams",
-      role: "Lead Architect",
-      image:
-        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR_h65aXYjcTaX4Ufq4-QWbt6n0C6YmzxXyFw&s",
-    },
-    {
-      name: "Carol Davis",
-      role: "Interior Designer",
-      image:
-        "https://upload.wikimedia.org/wikipedia/commons/thumb/4/48/Outdoors-man-portrait_%28cropped%29.jpg/1200px-Outdoors-man-portrait_%28cropped%29.jpg",
-    },
-    {
-      name: "David Lee",
-      role: "Construction Manager",
-      image:
-        "https://media.istockphoto.com/id/1388648617/photo/confident-caucasian-young-man-in-casual-denim-clothes-with-arms-crossed-looking-at-camera.jpg?s=612x612&w=0&k=20&c=YxctPklAOJMmy6Tolyvn45rJL3puk5RlKt39FO46ZeA=",
-    },
+    // Add more team members here
   ];
 
   const containerVariants = {
@@ -43,6 +25,8 @@ export default function TeamSection() {
     visible: { opacity: 1, y: 0 },
   };
 
+  const isSingleMember = teamMembers.length === 1;
+
   return (
     <section
       id="about"
@@ -50,34 +34,40 @@ export default function TeamSection() {
     >
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         {/* Title */}
-        <h2 className="text-3xl sm:text-4xl font-extrabold text-center mb-8 sm:mb-12 uppercase tracking-wide">
+        <h2 className="text-3xl sm:text-4xl font-extrabold text-center mb-12 uppercase tracking-wide">
           Meet Our <span className="text-neonBlue glow">Team</span>
         </h2>
 
-        {/* Team Grid - Mobile Optimized */}
+        {/* Team Grid */}
         <motion.div
-          className="grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-8"
+          className={`${
+            isSingleMember
+              ? "flex justify-center"
+              : "grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4"
+          } gap-6 sm:gap-8`}
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true }}
+          viewport={{ once: true, amount: 0.2 }}
         >
           {teamMembers.map((member, idx) => (
             <motion.div
               key={idx}
-              className="bg-gray-800/50 border border-gray-700 backdrop-blur-lg p-4 sm:p-6 rounded-xl shadow-lg transform transition-all hover:scale-105 hover:shadow-neonBlue text-center"
+              className={`bg-gray-800/60 border border-gray-700 backdrop-blur-lg p-6 rounded-2xl shadow-xl transition-all transform hover:scale-[1.06] hover:shadow-neonBlue text-center ${
+                isSingleMember ? "w-full max-w-xs" : ""
+              }`}
               variants={itemVariants}
             >
               <img
                 src={member.image}
                 alt={member.name}
-                className="mx-auto mb-3 sm:mb-4 w-24 sm:w-32 h-24 sm:h-32 object-cover rounded-full border-2 border-neonBlue"
+                className="mx-auto mb-5 w-24 sm:w-28 h-24 sm:h-28 object-cover rounded-full border-2 border-neonBlue shadow-md"
                 loading="lazy"
               />
-              <h3 className="text-lg sm:text-xl font-semibold text-white">
+              <h3 className="text-lg sm:text-xl font-semibold">
                 {member.name}
               </h3>
-              <p className="text-gray-300 text-sm sm:text-base">
+              <p className="text-gray-300 text-sm sm:text-base mt-1">
                 {member.role}
               </p>
             </motion.div>

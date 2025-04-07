@@ -104,13 +104,39 @@ export default function Footer() {
         </div>
 
         {/* Contact Information */}
-        <div>
-          <h4 className="text-xl font-semibold mb-4">Contact Us</h4>
-          <p className="text-gray-400">
-            #46 Pro Fit Club Appu circle Doddabele Kengeri Bangalore 560060
+        <div className="text-sm sm:text-base leading-relaxed space-y-2 text-gray-300">
+          <h4 className="text-lg sm:text-xl font-semibold text-neonBlue mb-2 flex items-center gap-2">
+            📫 Contact Us
+          </h4>
+
+          <p className="flex items-start gap-2">
+            📍
+            <span>
+              #46 Pro Fit Club, Appu Circle, Doddabele, Kengeri,
+              <br />
+              Bangalore - 560060
+            </span>
           </p>
-          <p className="text-gray-400">Email: mrconsultants589@gmail.com</p>
-          <p className="text-gray-400">Phone: +91 7619624474</p>
+
+          <p className="flex items-center gap-2">
+            ✉️
+            <a
+              href="mailto:mrconsultants589@gmail.com"
+              className="text-neonBlue hover:underline"
+            >
+              mrconsultants589@gmail.com
+            </a>
+          </p>
+
+          <p className="flex items-center gap-2">
+            📞
+            <a
+              href="tel:+917619624474"
+              className="text-neonBlue hover:underline"
+            >
+              +91 7619624474
+            </a>
+          </p>
         </div>
 
         {/* Map Section */}
@@ -120,7 +146,7 @@ export default function Footer() {
             <iframe
               title="Google Map Location"
               className="w-full h-full rounded-lg"
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3151.8354345094117!2d144.9537363153166!3d-37.816279442021024!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6ad65d5df1d06d1f%3A0x5045675218ce640!2s123+Future+St%2C+Innovation+City!5e0!3m2!1sen!2sus!4v1614123456789!5m2!1sen!2sus"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3610.776727950451!2d77.46936191022516!3d12.887912866655945!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bae3f8b88cbf2b3%3A0x12977ed473f721aa!2sPro%20Fit%20club!5e1!3m2!1sen!2sin!4v1744047048530!5m2!1sen!2sin"
               allowFullScreen=""
               loading="lazy"
             ></iframe>

@@ -5,22 +5,25 @@ import { motion } from "framer-motion";
 export default function TestimonialsSection() {
   const testimonials = [
     {
-      name: "John Smith",
+      name: "Akshat Gada",
       feedback:
         "M R Consultants helped us find the perfect property overseas. Their expertise was invaluable!",
-      image: "https://randomuser.me/api/portraits/men/32.jpg",
+      image:
+        "https://media.istockphoto.com/id/613557584/photo/portrait-of-a-beautifull-smiling-man.jpg?s=612x612&w=0&k=20&c=hkCg5CrmTKOApePbPOyo1U9GexEfIJOJqoLXJIvcN8E=",
     },
     {
-      name: "Maria Garcia",
+      name: "Abhinav Dubey",
       feedback:
         "They transformed our home interior into a modern oasis. Highly recommended!",
-      image: "https://randomuser.me/api/portraits/women/44.jpg",
+      image:
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTjtJqiPNplZ_hwP_fXLOLxBeQ-yqxIxVsHPQ&s",
     },
     {
-      name: "Mohammed Khan",
+      name: "Akash Debnath",
       feedback:
         "Professional, visionary, and reliable. M R Consultants delivered our construction project on time.",
-      image: "https://randomuser.me/api/portraits/men/54.jpg",
+      image:
+        "https://images.unsplash.com/photo-1607346256330-dee7af15f7c5?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8aW5kaWFuJTIwbWFufGVufDB8fDB8fHww",
     },
   ];
 
