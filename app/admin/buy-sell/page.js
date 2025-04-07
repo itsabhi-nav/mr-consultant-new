@@ -7,6 +7,8 @@ import { supabase } from "../../lib/supabaseClient";
 import { MdCheckCircle, MdError } from "react-icons/md";
 import { Pencil, Edit3, Home } from "lucide-react";
 
+
+
 // ---------------- Notification Component ----------------
 function Notification({ message, type, onClose }) {
   return (
