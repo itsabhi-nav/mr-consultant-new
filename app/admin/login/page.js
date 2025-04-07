@@ -93,6 +93,12 @@ export default function AdminDashboard() {
         >
           Edit Blog Posts
         </button>
+        <button
+          onClick={() => router.push("/admin/buy-sell")}
+          className="px-6 py-3 bg-green-600 text-white rounded hover:bg-green-700 transition"
+        >
+          Edit Buy/Sell Properties
+        </button>
       </div>
       <button
         onClick={async () => {

@@ -136,126 +136,99 @@ export default function AdminProjectsPage() {
       ]
     : newGalleryPreviews;
 
-  // Unified submit handler for both add and edit modes
   async function handleSubmit(e) {
     e.preventDefault();
     setIsUploading(true);
 
-    // Upload main image if new file selected; otherwise use existing preview (for edit)
-    let imageUrl = "";
-    if (file) {
-      try {
-        imageUrl = await uploadFileToCloudinary(file);
-      } catch (error) {
-        console.error("Main image upload failed:", error);
-        showNotification("Main image upload failed", "error");
-        setIsUploading(false);
-        return;
-      }
-    } else if (editId) {
-      imageUrl = mainImagePreview;
-    }
+    try {
+      // Process the main image concurrently:
+      const mainImagePromise = file
+        ? uploadFileToCloudinary(file)
+        : Promise.resolve(editId ? mainImagePreview : "");
 
-    // Process gallery images based on mode
-    let galleryUrls = [];
-    if (editId) {
-      // In edit mode, first take the remaining existing images
-      const remainingExisting = existingGallery.filter(
-        (url) => !pendingRemoval.includes(url)
-      );
-      let newUploads = [];
-      if (newGalleryFiles.length > 0) {
-        try {
-          newUploads = await Promise.all(
-            newGalleryFiles.map((gf) => uploadFileToCloudinary(gf))
-          );
-        } catch (error) {
-          console.error("Gallery image upload failed:", error);
-          showNotification("Gallery image upload failed", "error");
-        }
-      }
-      galleryUrls = [...remainingExisting, ...newUploads];
-    } else {
-      // In add mode, upload new files if any
-      if (newGalleryFiles.length > 0) {
-        try {
-          galleryUrls = await Promise.all(
-            newGalleryFiles.map((gf) => uploadFileToCloudinary(gf))
-          );
-        } catch (error) {
-          console.error("Gallery image upload failed:", error);
-          showNotification("Gallery image upload failed", "error");
-        }
-      } else {
-        galleryUrls = displayedGalleryPreviews;
-      }
-    }
+      // Process gallery images concurrently:
+      const galleryImagePromise = editId
+        ? newGalleryFiles.length > 0
+          ? Promise.all(
+              newGalleryFiles.map((gf) => uploadFileToCloudinary(gf))
+            ).then((newUploads) => [
+              ...existingGallery.filter((url) => !pendingRemoval.includes(url)),
+              ...newUploads,
+            ])
+          : Promise.resolve(
+              existingGallery.filter((url) => !pendingRemoval.includes(url))
+            )
+        : newGalleryFiles.length > 0
+        ? Promise.all(newGalleryFiles.map((gf) => uploadFileToCloudinary(gf)))
+        : Promise.resolve(newGalleryPreviews);
 
-    const projectData = {
-      service,
-      title: form.title,
-      description: form.description,
-      category: form.category,
-      overview: form.overview,
-      details: form.details,
-      hero_image: form.hero_image,
-      image: imageUrl,
-      gallery: galleryUrls,
-      location: form.location,
-      year_completed: form.year_completed,
-      project_type: form.project_type,
-      key_features: form.key_features,
-    };
+      // Run both uploads concurrently.
+      const [imageUrl, galleryUrls] = await Promise.all([
+        mainImagePromise,
+        galleryImagePromise,
+      ]);
 
-    if (editId) {
-      // Update existing project
-      const { error, data } = await supabase
-        .from("projects")
-        .update(projectData, { returning: "representation" })
-        .eq("id", editId);
-      if (error) {
-        console.error("Error updating project:", error);
-        showNotification("Error updating project", "error");
-      } else {
-        showNotification("Project updated successfully!", "success");
-        if (data && data.length > 0) {
-          setProjects((prev) =>
-            prev.map((p) => (p.id === editId ? data[0] : p))
-          );
+      // Assemble all project data including text fields and image URLs.
+      const projectData = {
+        service,
+        title: form.title,
+        description: form.description,
+        category: form.category,
+        overview: form.overview,
+        details: form.details,
+        hero_image: form.hero_image,
+        image: imageUrl,
+        gallery: galleryUrls,
+        location: form.location,
+        year_completed: form.year_completed,
+        project_type: form.project_type,
+        key_features: form.key_features,
+      };
+
+      // Update or insert based on edit mode
+      if (editId) {
+        const { error, data } = await supabase
+          .from("projects")
+          .update(projectData, { returning: "representation" })
+          .eq("id", editId);
+        if (error) {
+          console.error("Error updating project:", error);
+          showNotification("Error updating project", "error");
         } else {
-          // Re-fetch projects if no data is returned
-          const { data: refreshedData, error: fetchError } = await supabase
+          showNotification("Project updated successfully!", "success");
+          if (data && data.length > 0) {
+            setProjects((prev) =>
+              prev.map((p) => (p.id === editId ? data[0] : p))
+            );
+          }
+          setEditId(null);
+        }
+      } else {
+        const { error } = await supabase.from("projects").insert([projectData]);
+        if (error) {
+          console.error("Error inserting project:", error);
+          showNotification("Error inserting project", "error");
+        } else {
+          showNotification("Project added successfully!", "success");
+          const { data, error: fetchError } = await supabase
             .from("projects")
             .select("*")
             .eq("service", service);
-          if (!fetchError) setProjects(refreshedData);
-        }
-        setEditId(null);
-      }
-    } else {
-      // Insert new project
-      const { error } = await supabase.from("projects").insert([projectData]);
-      if (error) {
-        console.error("Error inserting project:", error);
-        showNotification("Error inserting project", "error");
-      } else {
-        showNotification("Project added successfully!", "success");
-        const { data, error: fetchError } = await supabase
-          .from("projects")
-          .select("*")
-          .eq("service", service);
-        if (fetchError) {
-          console.error("Error fetching projects", fetchError);
-          showNotification("Error fetching projects", "error");
-        } else {
-          setProjects(data);
+          if (fetchError) {
+            console.error("Error fetching projects", fetchError);
+            showNotification("Error fetching projects", "error");
+          } else {
+            setProjects(data);
+          }
         }
       }
+    } catch (error) {
+      console.error("Upload failed:", error);
+      showNotification("Image upload failed", "error");
+    } finally {
+      resetForm();
+      setIsUploading(false);
     }
-
-    // Reset form and file inputs after update
-    resetForm();
-    setIsUploading(false);
   }
 
   // Handle click on edit button: pre-fill form with project data

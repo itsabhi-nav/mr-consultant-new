@@ -19,7 +19,7 @@ export default function Header() {
           M R Consultants
         </motion.div>
 
-        {/* 🔹 Hamburger button (visible on mobile) */}
+        {/* 🔹 Hamburger (Mobile) */}
         <div className="md:hidden">
           <button
             onClick={() => setNavOpen(!navOpen)}
@@ -54,13 +54,19 @@ export default function Header() {
           </button>
         </div>
 
-        {/* 🔹 Desktop Navigation */}
-        <nav className="hidden md:flex space-x-10">
+        {/* 🔹 Desktop Nav */}
+        <nav className="hidden md:flex items-center space-x-10">
           <Link href="/" className="hover:text-neonBlue transition font-medium">
             Home
           </Link>
 
-          {/* 🔹 Services Dropdown */}
+          <Link
+            href="/#about"
+            className="hover:text-neonBlue transition font-medium"
+          >
+            About
+          </Link>
+
           <div
             className="relative group"
             onMouseEnter={() => setServicesOpen(true)}
@@ -119,16 +125,10 @@ export default function Header() {
           </div>
 
           <Link
-            href="/#about"
+            href="/buy-sell"
             className="hover:text-neonBlue transition font-medium"
           >
-            About
-          </Link>
-          <Link
-            href="/contact"
-            className="hover:text-neonBlue transition font-medium"
-          >
-            Contact
+            Buy/Sell Properties
           </Link>
 
           <Link
@@ -138,17 +138,16 @@ export default function Header() {
             Blog
           </Link>
 
-          {/* 🔹 Admin Login Button */}
           <Link
-            href="/admin/login"
-            className="hover:text-neonBlue transition font-medium border border-neonBlue px-3 py-1 rounded"
+            href="/contact"
+            className="hover:text-neonBlue transition font-medium"
           >
-            Admin Login
+            Contact
           </Link>
         </nav>
       </div>
 
-      {/* 🔹 Mobile Navigation */}
+      {/* 🔹 Mobile Nav */}
       <AnimatePresence>
         {navOpen && (
           <motion.div
@@ -166,7 +165,14 @@ export default function Header() {
                 Home
               </Link>
 
-              {/* 🔹 Mobile Services Dropdown */}
+              <Link
+                href="/#about"
+                className="hover:text-neonBlue transition font-medium"
+                onClick={() => setNavOpen(false)}
+              >
+                About
+              </Link>
+
               <div className="relative">
                 <button
                   className="w-full text-left font-semibold hover:text-neonBlue transition flex items-center"
@@ -228,18 +234,11 @@ export default function Header() {
               </div>
 
               <Link
-                href="/#about"
+                href="/buy-sell"
                 className="hover:text-neonBlue transition font-medium"
                 onClick={() => setNavOpen(false)}
               >
-                About
-              </Link>
-              <Link
-                href="#contact"
-                className="hover:text-neonBlue transition font-medium"
-                onClick={() => setNavOpen(false)}
-              >
-                Contact
+                Buy/Sell Properties
               </Link>
 
               <Link
@@ -250,13 +249,12 @@ export default function Header() {
                 Blog
               </Link>
 
-              {/* 🔹 Admin Login for Mobile */}
               <Link
-                href="/admin/login"
-                className="hover:text-neonBlue transition font-medium border border-neonBlue px-3 py-1 rounded"
+                href="/contact"
+                className="hover:text-neonBlue transition font-medium"
                 onClick={() => setNavOpen(false)}
               >
-                Admin Login
+                Contact
               </Link>
             </nav>
           </motion.div>

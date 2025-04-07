@@ -1,9 +1,9 @@
 import { v2 as cloudinary } from "cloudinary";
 
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME, // Set in your .env.local
-  api_key: process.env.CLOUDINARY_API_KEY, // Set in your .env.local
-  api_secret: process.env.CLOUDINARY_API_SECRET, // Set in your .env.local
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 export async function POST(req) {
@@ -11,25 +11,27 @@ export async function POST(req) {
     const formData = await req.formData();
     const file = formData.get("file");
     if (!file) {
-      return new Response("No file uploaded", { status: 400 });
+      return new Response(JSON.stringify({ error: "No file uploaded" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
     }
+
+    console.log("File received:", file.name, file.type, file.size); // Debug
 
     // Convert file to base64 string
     const buffer = await file.arrayBuffer();
     const base64data = Buffer.from(buffer).toString("base64");
     const fileData = `data:${file.type};base64,${base64data}`;
 
-    // Upload the file to Cloudinary with auto compression transformation
+    // Upload to Cloudinary with auto compression
+    console.log("Uploading to Cloudinary...");
     const result = await cloudinary.uploader.upload(fileData, {
-      folder: "projects",
-      transformation: [
-        {
-          quality: "auto:good", // Auto compress with good quality
-          fetch_format: "auto", // Convert to an optimal format (e.g., WebP)
-        },
-      ],
+      folder: "properties",
+      transformation: [{ quality: "auto:good", fetch_format: "auto" }],
     });
 
+    console.log("Upload successful:", result); // Debug
     return new Response(
       JSON.stringify({ url: result.secure_url, public_id: result.public_id }),
       {
@@ -38,7 +40,16 @@ export async function POST(req) {
       }
     );
   } catch (error) {
-    console.error("Error uploading file to Cloudinary:", error);
-    return new Response("Upload failed", { status: 500 });
+    console.error("Cloudinary upload error:", error.message, error);
+    return new Response(
+      JSON.stringify({
+        error: "Failed to upload image",
+        details: error.message,
+      }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   }
 }
