@@ -20,7 +20,7 @@ export default function RootLayout({ children }) {
         />
         <meta
           name="keywords"
-          content="real estate consultants, construction company, interior design firm, land development, luxury real estate, sustainable architecture, property consultants"
+          content="mr consultants, m r consultants, mr consultants bangalore, real estate consultants, construction company, interior design firm, land development, luxury real estate, sustainable architecture, property consultants"
         />
         <meta name="author" content="M R Consultants" />
         <meta name="robots" content="index, follow" />
@@ -79,15 +79,17 @@ export default function RootLayout({ children }) {
                 "M R Consultants is a global leader in real estate, construction, land development, and home interior design. Delivering innovative and sustainable solutions worldwide.",
               address: {
                 "@type": "PostalAddress",
-                streetAddress: "123 Future St",
-                addressLocality: "Innovation City",
+                streetAddress:
+                  "#46 Pro Fit Club, Appu Circle, Doddabele, Kengeri,Bangalore",
+                addressLocality:
+                  "#46 Pro Fit Club, Appu Circle, Doddabele, Kengeri,Bangalore",
                 addressCountry: "IN",
               },
               contactPoint: {
                 "@type": "ContactPoint",
-                telephone: "+1234567890",
+                telephone: " +91 7619624474",
                 contactType: "Customer Service",
-                email: "info@mrconsultants.com",
+                email: "mrconsultants589@gmail.com",
                 areaServed: "Worldwide",
                 availableLanguage: ["English", "Hindi"],
               },
@@ -98,25 +100,25 @@ export default function RootLayout({ children }) {
               ],
               founder: {
                 "@type": "Person",
-                name: "Alice Johnson",
+                name: "Mallesh Reddy",
               },
               foundingDate: "2010-01-01",
               employee: [
-                {
-                  "@type": "Person",
-                  name: "Bob Williams",
-                  jobTitle: "Lead Architect",
-                },
-                {
-                  "@type": "Person",
-                  name: "Carol Davis",
-                  jobTitle: "Interior Designer",
-                },
-                {
-                  "@type": "Person",
-                  name: "David Lee",
-                  jobTitle: "Construction Manager",
-                },
+                // {
+                //   "@type": "Person",
+                //   name: "Bob Williams",
+                //   jobTitle: "Lead Architect",
+                // },
+                // {
+                //   "@type": "Person",
+                //   name: "Carol Davis",
+                //   jobTitle: "Interior Designer",
+                // },
+                // {
+                //   "@type": "Person",
+                //   name: "David Lee",
+                //   jobTitle: "Construction Manager",
+                // },
               ],
               service: [
                 {

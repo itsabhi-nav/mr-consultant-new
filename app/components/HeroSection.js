@@ -4,7 +4,7 @@ export default function HeroSection() {
       {/* Background Video with Mobile Optimization */}
       <video
         className="absolute top-0 left-0 w-full h-full object-cover sm:object-center md:object-cover"
-        src="/real-estate.mp4"
+        src="https://res.cloudinary.com/dcahaaigp/video/upload/v1744049123/ezyZip_ngokho.mp4"
         autoPlay
         muted
         loop
