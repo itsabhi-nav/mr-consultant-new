@@ -6,6 +6,7 @@ import { FaTrashAlt } from "react-icons/fa";
 import { MdCheckCircle, MdError } from "react-icons/md";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { Pencil, Edit3, Home } from "lucide-react";
 
 const SERVICES = [
   { label: "Real Estate", value: "real-estate" },
@@ -347,15 +348,25 @@ export default function AdminProjectsPage() {
         className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 pt-24 bg-gradient-to-br from-gray-900 to-black text-white max-w-screen-lg"
       >
         {/* Navigation Links */}
-        <div className="flex justify-end mb-6">
-          <Link href="/admin/projects">
-            <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition mr-4">
+        <div className="flex flex-col md:flex-row md:justify-end gap-4 mb-6">
+          <Link href="/admin/projects" className="w-full md:w-auto">
+            <button className="w-full md:w-auto flex items-center justify-center gap-2 px-5 py-3 bg-indigo-600 text-white rounded-xl shadow hover:bg-indigo-700 transition-all duration-200">
+              <Pencil size={18} />
               Edit Services
             </button>
           </Link>
-          <Link href="/admin/blog">
-            <button className="px-4 py-2 bg-neonBlue text-black rounded hover:bg-neonBlue/80 transition">
+
+          <Link href="/admin/blog" className="w-full md:w-auto">
+            <button className="w-full md:w-auto flex items-center justify-center gap-2 px-5 py-3 bg-emerald-500 text-white rounded-xl shadow hover:bg-emerald-600 transition-all duration-200">
+              <Edit3 size={18} />
               Edit Blog Posts
+            </button>
+          </Link>
+
+          <Link href="/admin/buy-sell" className="w-full md:w-auto">
+            <button className="w-full md:w-auto flex items-center justify-center gap-2 px-5 py-3 bg-cyan-500 text-white rounded-xl shadow hover:bg-cyan-600 transition-all duration-200">
+              <Home size={18} />
+              Edit New Property
             </button>
           </Link>
         </div>
