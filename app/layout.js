@@ -26,6 +26,9 @@ export default function RootLayout({ children }) {
         <meta name="robots" content="index, follow" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+          {/* ✅ Google Search Console Verification */}
+  <meta name="google-site-verification" content="xWFvk6Q0gL7oqBTc1zjhUUWv1sYx2naspVqenv-xQ-g" />
+
         {/* ✅ Open Graph Meta Tags */}
         <meta
           property="og:title"
