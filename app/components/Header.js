@@ -12,12 +12,16 @@ export default function Header() {
     <header className="fixed top-0 left-0 w-full z-50 bg-black bg-opacity-70 backdrop-blur-lg shadow-lg">
       <div className="flex items-center justify-between py-4 px-6 sm:px-10">
         {/* 🔹 Brand Name */}
-        <motion.div
-          whileHover={{ scale: 1.1 }}
-          className="text-2xl font-extrabold text-neonBlue cursor-pointer tracking-widest"
-        >
-          M R Consultants
-        </motion.div>
+        <Link href="/" passHref legacyBehavior>
+          <a className="flex items-center space-x-3 text-2xl font-extrabold text-neonBlue tracking-widest hover:scale-105 transition-transform duration-300">
+            <img
+              src="/logo.png"
+              alt="MR Consultants Logo"
+              className="w-8 h-8 sm:w-10 sm:h-10 object-contain"
+            />
+            <span>MR Consultants</span>
+          </a>
+        </Link>
 
         {/* 🔹 Hamburger (Mobile) */}
         <div className="md:hidden">
