@@ -279,6 +279,10 @@ export default function AdminBlogPanel() {
 
   return (
     <>
+        {/* 👇 Meta tag to prevent indexing */}
+      <Head>
+        <meta name="robots" content="noindex, nofollow" />
+      </Head>
       {notification && (
         <Notification
           message={notification.message}
