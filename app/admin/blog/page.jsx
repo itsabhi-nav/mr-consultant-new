@@ -6,6 +6,7 @@ import { MdCheckCircle, MdError } from "react-icons/md";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { Pencil, Edit3, Home } from "lucide-react";
+import Head from "next/head"; // 👈 Add meta tag support
 
 function Notification({ message, type, onClose }) {
   return (
@@ -283,6 +284,7 @@ export default function AdminBlogPanel() {
       <Head>
         <meta name="robots" content="noindex, nofollow" />
       </Head>
+      
       {notification && (
         <Notification
           message={notification.message}
