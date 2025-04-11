@@ -6,7 +6,7 @@ import Link from "next/link";
 import { supabase } from "../../lib/supabaseClient";
 import { MdCheckCircle, MdError } from "react-icons/md";
 import { Pencil, Edit3, Home } from "lucide-react";
-
+import Head from "next/head"; // 👈 Added this
 
 
 // ---------------- Notification Component ----------------
@@ -305,6 +305,9 @@ export default function AdminBuySellPanel() {
   // ---------------- Render ----------------
   return (
     <>
+  <Head>
+  <meta name="robots" content="noindex, nofollow" />
+  </Head>
       {notification && (
         <Notification
           message={notification.message}
