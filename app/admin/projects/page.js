@@ -7,6 +7,7 @@ import { MdCheckCircle, MdError } from "react-icons/md";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { Pencil, Edit3, Home } from "lucide-react";
+import Head from "next/head"; // 👈 Add meta tag support
 
 const SERVICES = [
   { label: "Real Estate", value: "real-estate" },
@@ -335,6 +336,10 @@ export default function AdminProjectsPage() {
 
   return (
     <>
+       {/* 👇 Meta tag to prevent indexing */}
+      <Head>
+        <meta name="robots" content="noindex, nofollow" />
+      </Head>
       {notification && (
         <Notification
           message={notification.message}
